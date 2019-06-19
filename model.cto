@@ -1,0 +1,141 @@
+namespace org.perishable
+
+abstract participant Business identified by pId{
+  o String pId
+  o Address address
+  o Contact contacts
+  o String company
+  o Double accountbalance
+}
+
+participant Farmer extends Business{
+
+}
+
+participant Retailer extends Business{
+
+}
+
+
+asset Produce identified by produceId{
+  /**  
+  *The produceId SHOULD BE a combination of the productType and a number to uniquely identify that *shipment
+  *This allows for easier data querying over extended periods of time 
+  *In this case it can allow the Supermarket to find out how many apples have been 
+  *delivered over a certain period(weeks,months,years) and compare that with the 
+  *demand thus allowing them to come up with a business strategy for max profit
+  */
+
+  o String produceId
+  o ProductType productType
+  o Integer unitCount
+  o Double unitPrice
+}
+
+asset Shipment identified by sId{
+  o String sId
+  o ShipmentStatus shipment_Status default = "CREATED"
+
+  // The maximum and minimum temperature that the product SHOULD BE TRANSPORTED IN
+  o Double maxShipTemp
+  o Double minShipTemp
+
+  //The max and min temp that it was ACTUALLY TRANSPORTED IN
+  o Double maxTemp
+  o Double minTemp
+
+  //Penalties for improper shipping temperature (Both high and low)
+  o Integer maxTempMultiplier
+  o Integer minTempMultiplier
+
+  o DateTime arrivalDateTime
+  --> Produce produce
+  --> Farmer farmer
+  --> Retailer retailer
+}
+
+enum ShipmentStatus{
+  o CREATED
+  o IN_TRANSIT
+  o ARRIVED
+  o INVALID
+}
+
+enum ProductType{
+  o APPLE 
+  o ORANGE 
+  o PINEAPPLE
+}
+
+concept Contact{
+  o String email
+  o String Phone_No regex = /[+][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]/
+  o String MailingAddress optional
+}
+
+concept Address{
+  o String Country 
+  o String County
+  o String City optional
+  o String Estate optional
+  o String Street optional
+}
+
+concept Transporter{
+  o String fname
+  o String lname
+  o Integer Id_No
+  o String transport_firm
+}
+
+//A transaction that allows the farmer to dispatch the produce to the retailer 
+transaction CreateDispatch{
+  o Transporter transporter
+  --> Shipment shipment
+}
+
+/**A transaction that allows the retailers to acknowledge that they received the shipment and pay *for it
+*/
+
+transaction ShipmentReceived{
+  o Transporter transporter
+  --> Shipment shipment
+} 
+
+//Allows one to add instances of Farmers using transactions
+transaction CreateFarmer{
+  o String pId
+
+  o String Country 
+  o String County
+  o String City optional
+  o String Estate optional
+  o String Street optional
+
+  o String email
+  o String Phone_No 
+  o String MailingAddress optional
+
+  o String company
+  o Double accountbalance
+}
+
+transaction CreateRetailer{
+  o String pId
+
+  o String Country 
+  o String County
+  o String City optional
+  o String Estate optional
+  o String Street optional
+  
+  o String email
+  o String Phone_No 
+  o String MailingAddress optional
+
+  o String company
+  o Double accountbalance
+}
+
+
+
